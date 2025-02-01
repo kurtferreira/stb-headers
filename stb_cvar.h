@@ -46,22 +46,6 @@ typedef struct {
   } value;
 } cvar_t;
 
-#ifndef CVAR_NOSHORTHAND
-  #define cvar_get(cvar) \
-    cvar->type == CVAR_NUMBER ? \
-      cvar->value.number : ( \
-        cvar->type == CVAR_STRING ? cvar->value.str : cvar->value.boolean \
-      )
-      
-  #define cvar_set(cvar, val) \
-    switch(cvar->type) { \
-      case CVAR_NUMBER: stb_cvar_set_number(cvar, val);break; \
-      case CVAR_STRING: stb_cvar_set_str(cvar, val);break; \
-      case CVAR_BOOL: stb_cvar_set_bool(cvar, val);break; \
-    };
-
-#endif
-
 //
 // Declarations
 //
@@ -105,7 +89,6 @@ void stb_cvar_destroy(cvar_t* cvar) {
   CVAR_FREE(cvar);
 }
 
- 
 void stb_cvar_set_str(cvar_t* cvar, char* value) {
   CVAR_ASSERT(cvar);
   cvar->value.str = value;
