@@ -14,18 +14,18 @@
 
 #ifndef CVAR_MAX_NAME
   #define CVAR_MAX_NAME 128
-#endif 
+#endif
 
 #ifndef CVAR_ASSERT
   #include <assert.h>
   #define CVAR_ASSERT(x) assert(x)
-#endif 
+#endif
 
 #ifndef CVAR_ALLOC
   #include <assert.h>
   #define CVAR_ALLOC(size) malloc(size)
   #define CVAR_FREE(ptr) free(ptr)
-#endif 
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,7 +46,7 @@ enum {
 typedef struct {
   char name[CVAR_MAX_NAME];
   char type;
-  union { 
+  union {
     char *str;
     double number;
     bool boolean;
@@ -94,7 +94,7 @@ bool stb_cvar_get_bool(cvar_t* cvar);
 
 cvar_t* stb_cvar_create(const char* name, int type, unsigned int flags) {
   CVAR_ASSERT(strlen(name) < CVAR_MAX_NAME);
-  
+
   cvar_t* cvar = CVAR_ALLOC(sizeof(cvar_t));
   CVAR_ASSERT(cvar != NULL);
   cvar->type = type;
@@ -103,7 +103,7 @@ cvar_t* stb_cvar_create(const char* name, int type, unsigned int flags) {
    cvar->min = DBL_MIN;
    cvar->max = DBL_MAX;
   strcpy(cvar->name, name);
-   
+
   return cvar;
 }
 
@@ -120,7 +120,7 @@ void stb_cvar_set_str(cvar_t* cvar, char* value) {
 void stb_cvar_set_number(cvar_t* cvar, double value) {
   CVAR_ASSERT(cvar);
   CVAR_ASSERT(value > cvar->min && value < cvar->max); // if the user specifies bounds, otherwise we'll simply wrap around
-   
+
   cvar->value.number = value;
 }
 
@@ -144,9 +144,9 @@ void stb_cvar_set_opt(cvar_t* cvar, unsigned int option) {
    cvar->flags |= option;
 }
 
-void stb_cvar_clear_opt(cvar_t* cvar, unsigned int option) { 
+void stb_cvar_clear_opt(cvar_t* cvar, unsigned int option) {
    CVAR_ASSERT(cvar);
-   cvar->flags ~= option;
+   cvar->flags &= ~option;
 }
 
 bool stb_cvar_has_opt(cvar_t* cvar, unsigned int option) {
