@@ -27,6 +27,24 @@
   #define CVAR_FREE(ptr) free(ptr)
 #endif
 
+#define CVAR_USE_C11 // using generics
+#ifdef CVAR_USE_C11
+    #define stb_cvar_get(x, v) _Generic((v), \
+        char**:  ((x)->type == CVAR_STRING  ? (*(char**)&(v) = (x)->str)    : (fprintf(stderr, "Type mismatch!\n"), 0)), \
+        bool*:   ((x)->type == CVAR_BOOL    ? (*(bool*)&(v) = (x)->boolean) : (fprintf(stderr, "Type mismatch!\n"), 0)), \
+        double*: ((x)->type == CVAR_NUMBER  ? (*(double*)&(v) = (x)->number) : (fprintf(stderr, "Type mismatch!\n"), 0)) \
+    )
+
+    #define stb_cvar_set(x, v) \
+        _Generic((v), \
+            unsigned int: stb_cvar_set_bool, \
+            bool: stb_cvar_set_bool, \
+            int: stb_cvar_set_bool, \
+            double: stb_cvar_set_number, \
+            char*: stb_cvar_set_str \
+        )(x, v)
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -46,16 +64,16 @@ enum {
 typedef struct {
   char name[CVAR_MAX_NAME];
   char type;
-  union {
-    char *str;
-    double number;
-    bool boolean;
-  } value;
   double min;
   double max;
   bool must_restart;
   unsigned int flags;
 
+  union {
+    char *str;
+    double number;
+    bool boolean;
+  };
 } cvar_t;
 
 //
@@ -78,6 +96,25 @@ const char* stb_cvar_get_str(cvar_t* cvar);
 double stb_cvar_get_number(cvar_t* cvar);
 bool stb_cvar_get_bool(cvar_t* cvar);
 
+#ifdef CVAR_SHORTNAME
+    #define cvar_create(name, type, flags) stb_cvar_create(name, type, flags)
+    #define cvar_destroy(cvar) stb_cvar_destroy(cvar)
+    #define cvar_set_number(cvar, value) stb_cvar_set_number(cvar, value)
+    #define cvar_set_str(cvar, value) stb_cvar_set_str(cvar, value)
+    #define cvar_set_bool(cvar, value) stb_cvar_set_bool(cvar, value)
+    #define cvar_set_min(cvar, value) stb_cvar_set_min(cvar, value)
+    #define cvar_set_max(cvar, value) stb_cvar_set_max(cvar, value)
+    #define cvar_set_opt(cvar, options) stb_cvar_set_opt(cvar, option)
+    #define cvar_clear_opt(cvar, option) stb_cvar_clear_opt(cvar, option)
+    #define cvar_has_opt(cvar, option) stb_cvar_has_opt(cvar, option)
+    #define cvar_get_str(cvar) stb_cvar_get_str(cvar)
+    #define cvar_get_number(cvar) stb_cvar_get_number(cvar)
+    #define cvar_get_bool(cvar) stb_cvar_get_bool(cvar)
+    #ifdef CVAR_USE_C11
+        #define cvar_get(cvar) stb_cvar_get(cvar)
+        #define cvar_set(cvar, value) stb_cvar_set(cvar, value)
+    #endif
+#endif
 
 #ifdef __cplusplus
 }
@@ -86,7 +123,6 @@ bool stb_cvar_get_bool(cvar_t* cvar);
 #endif // STB_CVAR_H
 
 #ifdef STB_CVAR_IMPLEMENTATION
-
 
 //
 // Implementation
@@ -114,19 +150,19 @@ void stb_cvar_destroy(cvar_t* cvar) {
 
 void stb_cvar_set_str(cvar_t* cvar, char* value) {
   CVAR_ASSERT(cvar);
-  cvar->value.str = value;
+  cvar->str = value;
 }
 
 void stb_cvar_set_number(cvar_t* cvar, double value) {
   CVAR_ASSERT(cvar);
   CVAR_ASSERT(value > cvar->min && value < cvar->max); // if the user specifies bounds, otherwise we'll simply wrap around
 
-  cvar->value.number = value;
+  cvar->number = value;
 }
 
 void stb_cvar_set_bool(cvar_t* cvar, bool value) {
   CVAR_ASSERT(cvar);
-  cvar->value.boolean = value;
+  cvar->boolean = value;
 }
 
 void stb_cvar_set_min(cvar_t* cvar, double value) {
@@ -156,17 +192,17 @@ bool stb_cvar_has_opt(cvar_t* cvar, unsigned int option) {
 
 const char* stb_cvar_get_str(cvar_t* cvar) {
   CVAR_ASSERT(cvar);
-  return (const char*) cvar->value.str;
+  return (const char*) cvar->str;
 }
 
 double stb_cvar_get_number(cvar_t* cvar) {
   CVAR_ASSERT(cvar);
-  return cvar->value.number;
+  return cvar->number;
 }
 
 bool stb_cvar_get_bool(cvar_t* cvar) {
   CVAR_ASSERT(cvar);
-  return cvar->value.boolean;
+  return cvar->boolean;
 }
 
 #endif // STB_CVAR_IMPLEMENTATION
