@@ -52,7 +52,7 @@ extern "C" {
 // CVAR options
 #define CVAR_OPT_SAVE       (1<<1)   // Save the CVAR to a file (this is up to the implementor)
 #define CVAR_OPT_RESTART    (1<<2)   // Changing this Cvar will result in a restart of some systems (again, up to the implementor)
-#define CVAR_OPT_VISIBLE    (1<<3)   // The cvar is a menu-visible setting
+#define CVAR_OPT_CUSTOM     (1<<3)   // Start your custom definitions here
 // Define your own options over this point starting with (1<<4)
 
 enum {
